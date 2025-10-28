@@ -88,12 +88,20 @@ class CodingVideo:
       pillow_image = Image.fromarray(frame)
       pillow_image.save(output_path)
 
+    def get_text_from_frame(self, frame_number: int) -> str:
+        """OCR video frame using tesseract"""
+        frame = self.get_frame_rgb_array(frame_number)
+        return pytesseract.image_to_string(frame)
+
 def test():
     """Try out your class here"""
     oop = CodingVideo(VID_PATH)
     print(oop)
-    oop.save_as_image(42, PNG_PATH)
-    print(pytesseract.image_to_string(Image.open(PNG_PATH)))
+    frame_number = oop.get_frame_number_at_time(42)
+    text = oop.get_text_from_frame( frame_number )
+    print(text)
+    # oop.save_as_image(42, PNG_PATH)
+    # print(pytesseract.image_to_string(Image.open(PNG_PATH)))
 
 if __name__ == '__main__':
     test()
