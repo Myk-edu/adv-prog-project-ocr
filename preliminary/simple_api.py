@@ -1,25 +1,21 @@
 """Provides a simple API for your basic OCR client
+***  myk's copy, cloned 28/10/2025, for project.
 
 Drive the API to complete "interprocess communication"
-
 Requirements
 """
-
 from fastapi import FastAPI, HTTPException
 from fastapi import Response
 from pydantic import BaseModel
 from pathlib import Path
 from library_basics import CodingVideo
-
-
 app = FastAPI()
-
 
 # We'll create a lightweight "database" for our videos
 # You can add uploads later (not required for assessment)
 # For now, we will just hardcode are samples
 VIDEOS: dict[str, Path] = {
-    "demo": Path("../resources/oop.mp4")
+    "demo": Path("resources/oop.mp4")
 }
 
 class VideoMetaData(BaseModel):
@@ -49,7 +45,7 @@ def list_videos():
 def _open_vid_or_404(vid: str) -> CodingVideo:
     path = VIDEOS.get(vid)
     if not path or not path.is_file():
-        raise HTTPException(status_code=404, detail="Video not found")
+        raise HTTPException(status_code=404, detail=f"Video '{path}' not found")
     try:
         return CodingVideo(path)
     except ValueError as e:
@@ -65,24 +61,40 @@ def _meta(video: CodingVideo) -> VideoMetaData:
 
 @app.get("/video/{vid}", response_model=VideoMetaData)
 def video(vid: str):
-    video = _open_vid_or_404(vid)
+    coding_video = _open_vid_or_404(vid)
     try:
-            meta = _meta(video)
+            meta = _meta(coding_video)
             meta._links = {
                 "self": f"/video/{vid}",
                 "frames": f"/video/{vid}/frame/{{seconds}}"
             }
             return meta
     finally:
-        video.capture.release()
+        coding_video.capture.release()
 
 
-@app.get("/video/{vid}/frame/{t}", response_class=Response)
-def video_frame(vid: str, t: float):
+@app.get("/video/{vid}/frame/{timestamp}", response_class=Response)
+def video_frame(vid: str, timestamp: float):
+    """
+    vid: name of video as returned by /video endpoint
+    timestamp:  in seconds, to find frame
+    returns a PNG frame. (not json)
+    """
     try:
-        video = _open_vid_or_404(vid)
-        return Response(content=video.get_image_as_bytes(t), media_type="image/png")
+        coding_video = _open_vid_or_404(vid)
+        return Response(content=coding_video.get_image_as_bytes(timestamp), media_type="image/png")
     finally:
-      video.capture.release()
+        coding_video.capture.release()
 
-# TODO: add enpoint to get ocr e.g. /video/{vid}/frame/{t}/ocr
+
+@app.get("/video/{vid}/frame/{t}/ocr")
+def video_frame_ocr(vid: str, t: float):
+    """
+    returns a string (as application/json) with the OCR text from the frame at specified time
+    """
+    try:
+        coding_video = _open_vid_or_404(vid)
+        return coding_video.get_text_from_time(t)
+    finally:
+        coding_video.capture.release()
+

@@ -93,6 +93,10 @@ class CodingVideo:
         frame = self.get_frame_rgb_array(frame_number)
         return pytesseract.image_to_string(frame)
 
+    def get_text_from_time(self, t: float) -> str:
+        """OCR video frame, at given time"""
+        return self.get_text_from_frame( self.get_frame_number_at_time(t))
+
 def test():
     """Try out your class here"""
     oop = CodingVideo(VID_PATH)
