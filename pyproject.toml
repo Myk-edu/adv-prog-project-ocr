@@ -8,5 +8,8 @@ dependencies = [
     "fastapi[standard]>=0.120.1",
     "opencv-python>=4.12.0.88",
     "pillow>=12.0.0",
+    "pyqt6>=6.10.0",
+    "pyqt6-webengine>=6.10.0",
     "pytesseract>=0.3.13",
+    "python-vlc>=3.0.21203",
 ]
