@@ -8,7 +8,10 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QSlider, QTextEdit, QSpinBox)
 from PyQt6.QtCore import Qt, QTimer
 import vlc
-
+import requests
+import tempfile
+import time
+import os
 
 class VideoPlayer(QMainWindow):
     def __init__(self):
@@ -363,37 +366,57 @@ class VideoPlayer(QMainWindow):
         self.player.stop()
 
     def capture_frame(self):
-        """Capture current frame as image"""
+        """Capture current frame as image and send to OCR"""
         if self.player.is_playing() or self.player.get_state() == vlc.State.Paused:
             # Pause if playing
             was_playing = self.player.is_playing()
             if was_playing:
                 self.pause()
 
-            # Take snapshot
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Frame",
-                "",
-                "PNG files (*.png);;JPEG files (*.jpg)"
-            )
-            if file_path:
-                # video_take_snapshot(num, path, width, height)
-                # 0 for default size
-                self.player.video_take_snapshot(0, file_path, 0, 0)
+            try:
+                # Create temporary file for snapshot
+                import tempfile
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                    snapshot_path = tmp.name
 
-                # Add your OCR code here
-                # Example: send file_path to your OCR API
-                # result = your_ocr_function(file_path)
-                # self.text_display.append(result)
+                # Take snapshot
+                self.player.video_take_snapshot(0, snapshot_path, 0, 0)
 
-                # Placeholder text for demonstration
-                self.text_display.append(f"Frame captured: {file_path}")
-                self.text_display.append("Add your OCR processing code here...")
+                # Wait a moment for snapshot to be written
+                import time
+                time.sleep(0.2)
+
+                # Send to OCR API
+                import requests
+                with open(snapshot_path, 'rb') as f:
+                    files = {'file': ('frame.png', f, 'image/png')}
+                    response = requests.post(
+                        'http://localhost:8000/frame/ocr',
+                        files=files,
+                        headers={'accept': 'application/json'}
+                    )
+
+                # Clean up temp file
+                import os
+                os.unlink(snapshot_path)
+
+                # Display result
+                if response.status_code == 200:
+                    ocr_text = response.text
+                    self.text_display.append(f"--- OCR Result ---")
+                    self.text_display.append(ocr_text)
+                    self.text_display.append("")
+                else:
+                    self.text_display.append(f"OCR Error: {response.status_code} - {response.text}")
+
+            except requests.exceptions.ConnectionError:
+                QMessageBox.critical(self, "Connection Error",
+                                     "Could not connect to OCR service at localhost:8000")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to capture/process frame: {str(e)}")
 
         else:
             QMessageBox.warning(self, "Warning", "No video playing")
-
     def closeEvent(self, event):
         """Clean up VLC player on close"""
         self.player.stop()
