@@ -64,6 +64,20 @@ To run the server, use the below in PowerShell:
 
         fastapi run preliminary\simple_api.py
 
+### Troubleshooting:
+#### Internal server error – terminal informing of tesseract not installed or not in PATH.
+Make sure tesseract is installed in the system - download from github and install if necessary: 
+
+    https://github.com/UB-Mannheim/tesseract/wiki
+
+Go to System -> (search) Environmental Variables -> System Variables -> Path -> Edit
+Click 'New' and add the path where tesseract is installed - default:
+
+        C:\Program Files\Tesseract-OCR
+
+Restart the IDE and confirm if the project is working correctly.
+
+
 ## How to contribute
 
 - test the player on Windows, report
