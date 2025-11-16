@@ -213,6 +213,13 @@ class VideoPlayer(QMainWindow):
         skip_forward_long_btn.clicked.connect(lambda: self.skip(self.skip_long))
         time_control_layout.addWidget(skip_forward_long_btn)
 
+        # skipping to chosen timestamp
+        enter_timestamp = QLineEdit()
+        skip_to_timestamp_button = QPushButton("Go to timestamp")
+        skip_to_timestamp_button.clicked.connect(lambda: self.seek_to_timestamp(enter_timestamp.text()))
+        time_control_layout.addWidget(enter_timestamp)
+        time_control_layout.addWidget(skip_to_timestamp_button)
+
         layout.addLayout(time_control_layout)
 
         # Playback controls and speed
@@ -229,6 +236,7 @@ class VideoPlayer(QMainWindow):
         stop_btn = QPushButton("Stop")
         stop_btn.clicked.connect(self.stop)
         playback_layout.addWidget(stop_btn)
+
 
         playback_layout.addWidget(QLabel("Speed:"))
         self.speed_combo = QComboBox()
@@ -388,6 +396,12 @@ class VideoPlayer(QMainWindow):
         if length > 0:
             new_time = int((position / 1000) * length)
             self.player.set_time(new_time)
+
+    def seek_to_timestamp(self, timestamp):
+        """Seek video to chosen timestamp"""
+        length = self.player.get_length()
+        if length > 0 and timestamp <= length:
+            self.player.set_time(timestamp)
 
     def skip(self, seconds):
         """Skip forward or backward by specified seconds"""
