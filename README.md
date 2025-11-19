@@ -52,18 +52,41 @@ Client (Player) requires:
         python -m venv .venv
 3. Activate the virtual environment running the following in PowerShell:
 
+
+
         .venv\Scripts\activate
-4. Install poetry (in PowerShell):
+4. Install dependencies (Optional) 
+
+        pip install -r requirements.txt
+5. Install poetry (in PowerShell):
 
         pip install poetry
-5. Run poetry to install dependencies, including tesseract, opencv, fastapi:
+6. Run poetry to install dependencies, including tesseract, opencv, fastapi:
         
         poetry install --no-root
-6. At this stage, you should be able to run the project. 
+7. At this stage, you should be able to run the project. 
 To run the server, use the below in PowerShell:
 
         fastapi run preliminary\simple_api.py
+8. in case, If FastAPI does not work on your system, you may use Uvicorn directly: 
 
+        python -m uvicorn preliminary.simple_api:app --reload
+        
+        or
+
+        python -m uvicorn preliminary.simple_api:app 
+9. Run the Video Player(Terminal #2)
+
+        python player/player_qt6.py
+### So now you can see the new window with:
+- play video
+- load URLs
+- adjust volume
+- seek
+- capture frames for OCR 
+- see a transcript 
+### Both server and player must run at the same time. 
+***
 ### Troubleshooting:
 #### Internal server error – terminal informing of tesseract not installed or not in PATH.
 Make sure tesseract is installed in the system - download from github and install if necessary: 
@@ -82,6 +105,7 @@ Restart the IDE and confirm if the project is working correctly.
 
 - test the player on Windows, report
 - a better OCR engine?  This version of Pytesseract is not great.
+- improve the UI or keyboard navigation.
 
 ### Accessibility
 fix tab navigation and shortcuts
