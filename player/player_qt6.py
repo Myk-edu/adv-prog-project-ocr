@@ -32,6 +32,7 @@ class SettingsDialog(QDialog):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
+        
 
         # OCR API URL
         api_layout = QHBoxLayout()
@@ -115,7 +116,7 @@ class VideoPlayer(QMainWindow):
         self.skip_short = self.config.get('skip_short', 5)
         self.skip_long = self.config.get('skip_long', 30)
         self.api_url = self.config.get('api_url', 'http://localhost:8000/frame/ocr')
-
+        self.accessibility_mode = self.config.get('accessibility_mode', False) # default off
         # Timer for updating slider
         self.timer = QTimer(self)
         self.timer.setInterval(100)
@@ -149,7 +150,13 @@ class VideoPlayer(QMainWindow):
         recent_layout.addWidget(settings_btn)
 
         layout.addLayout(recent_layout)
-
+        
+        
+        # Accessibility Mode
+        accessibility_btn = QPushButton("Accessibility Mode")
+        accessibility_btn.clicked.connect(self.toggle_accessibility)
+        recent_layout.addWidget(accessibility_btn)
+        
         # Top control layout
         control_layout = QHBoxLayout()
 
@@ -346,6 +353,60 @@ class VideoPlayer(QMainWindow):
             self.pause()
         else:
             self.play()
+    
+    
+    # Accessibility mode toggle
+    def toggle_accessibility(self):
+        self.accessibility_mode = not self.accessibility_mode
+        self.apply_accessibility_style()
+        self.save_config()
+    
+    def apply_accessibility_style(self):
+        """Apply accessibility styles if enabled"""
+        if self.accessibility_mode:
+            # Example: increase font size and button sizes
+            self.setStyleSheet("""
+                    QWidget {
+                        background-color: #000000;
+                        color: #FFFFFF;
+                        font-size: 16px;
+                        font-weight: bold;
+                    }
+                    QPushButton {
+                        font-size: 18px;
+                        padding: 10px;
+                        border: 2px solid #FFFFFF;
+                        border-radius: 6px;
+                    }
+                    QPushButton:focus {
+                        border: 3px solid yellow;
+                    }
+                    QLineEdit, QTextEdit {
+                        font-size: 16px;
+                        background-color: #222222;
+                        color: #FFFFFF;
+                        padding: 6px;
+                    }
+                    QLabel {
+                        font-size: 16px;
+                    }
+                    QComboBox {
+                        font-size: 16px;
+                        padding: 8px;
+                        min-height: 32px;
+                        background-color: #222222;
+                        color: #FFFFFF;
+                    }
+                    QComboBox QAbstractItemView {
+                        font-size: 16px;
+                        background-color: #000000;
+                        color: #FFFFFF;
+                    }
+                """)
+        else:
+            # Reset to default styles
+            self.setStyleSheet("")
+            
 
     def decrease_speed(self):
         """Decrease playback speed"""
@@ -396,6 +457,7 @@ class VideoPlayer(QMainWindow):
             self.config['skip_short'] = self.skip_short
             self.config['skip_long'] = self.skip_long
             self.config['api_url'] = self.api_url
+            self.config['accessibility_mode'] = self.accessibility_mode
             with open(self.config_path, 'w') as f:
                 json.dump(self.config, f, indent=2)
         except Exception as e:
