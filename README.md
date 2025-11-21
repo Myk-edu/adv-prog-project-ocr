@@ -87,28 +87,51 @@ To run the server, use the below in PowerShell:
 - see a transcript 
 ### Both server and player must run at the same time. 
 ***
-### Troubleshooting:
-#### Internal server error – terminal informing of tesseract not installed or not in PATH.
-Make sure tesseract is installed in the system - download from github and install if necessary: 
+### MACHINE SETUP FOR TESSERACT:
+#### Window setup (required):
+if you are on Windows, you must set the TESSERACT_PATH environment variable after installing Tesseract. 
+1. install Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki
+2. finding the installed path(dafault):
+       
+       C:\Program Files\Tesseract-OCR\tesseract.exe
+3. add a new Enviroment Variable:
+       
+       Variable name:  TESSERACT_PATH
 
-    https://github.com/UB-Mannheim/tesseract/wiki
+       Variable value: C:\Program Files\Tesseract-OCR\tesseract.exe
+#### MacOs/Linux Setup:
+Install Tesseract using your package manager:
+- MacOS (Homebrew): 
+      
+      brew install tesseract
+- Ubuntu / Debian:
+      
+      sudo apt install tesseract-ocr
+- Fedora:
+      
+      sudo dnf install tesseract
+#### Verify Installation
+- Run the following in a new terminal:
+      
+      tesseract --version
+- You can also verify that your environment variable is set on Windows:
+      
+      echo %TESSERACT_PATH% (bash)
+      
+      or
 
-Go to System -> (search) Environmental Variables -> System Variables -> Path -> Edit
-Click 'New' and add the path where tesseract is installed - default:
+      echo $env:TESSERACT_PATH (PowerShell)
 
-        C:\Program Files\Tesseract-OCR
-
-Restart the IDE and confirm if the project is working correctly.
-
-
-## How to contribute
+***
+### How to contribute
 
 - test the player on Windows, report
 - a better OCR engine?  This version of Pytesseract is not great.
 - improve the UI or keyboard navigation.
-
+***
 ### Accessibility
 fix tab navigation and shortcuts
+
 
 ### New features:
   - make the time position editable, so user can seek to a given timestamp.
@@ -120,4 +143,4 @@ fix tab navigation and shortcuts
 
 ### UI:
 - replace button text labels with symbols (play, pause etc), but make sure they have alt-text for screen-readers.
-- 
+ 
