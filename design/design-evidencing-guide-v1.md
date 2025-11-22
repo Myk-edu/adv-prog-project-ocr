@@ -71,12 +71,15 @@ You will validate your design by meeting with a user representative: the product
 
 ##### What could be improved
 
-- [ ] [list of things that could be improved]
+- [ ] tab navigation
+- [ ] keyboard shortcuts
 
 ##### What will you change before the next meeting
 
 - [ ] [list of things that will be changed before the next meeting] (no commitment to complete this)
-
+- [ ] tab navigation
+- [ ] keyboard shortcuts
+- 
 ##### Were there any questions that needed to be discussed with the user
 
 - [ ] [list of questions that need to be discussed with the user]

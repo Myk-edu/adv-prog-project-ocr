@@ -17,7 +17,9 @@ import cv2
 import numpy as np
 from PIL import Image
 import pytesseract 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# bad cert-iv
 
 from io import BytesIO
 
