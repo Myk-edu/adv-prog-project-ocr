@@ -21,6 +21,9 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
 from PyQt6.QtCore import Qt, QTimer
 import vlc
 
+# Constants
+DEFAULT_API_URL = 'http://localhost:8000/frame/ocr'
+
 class SettingsDialog(QDialog):
     """
     Creates a modal dialog for changing settings. These are persistant in a json config file.
@@ -38,7 +41,7 @@ class SettingsDialog(QDialog):
         api_layout = QHBoxLayout()
         api_layout.addWidget(QLabel("OCR API URL:"))
         self.api_url_edit = QLineEdit()
-        self.api_url_edit.setText(config.get('api_url', 'http://localhost:8000/frame/ocr'))
+        self.api_url_edit.setText(config.get('api_url', DEFAULT_API_URL))
         api_layout.addWidget(self.api_url_edit)
         layout.addLayout(api_layout)
 
@@ -94,7 +97,7 @@ class SettingsDialog(QDialog):
             'skip_long': self.skip_long_spin.value()
         }
 
-
+###########
 class VideoPlayer(QMainWindow):
     """
     Main window for video player app, using Qt6.
@@ -115,8 +118,9 @@ class VideoPlayer(QMainWindow):
         self.recent_items = self.config.get('recent_items', [])
         self.skip_short = self.config.get('skip_short', 5)
         self.skip_long = self.config.get('skip_long', 30)
-        self.api_url = self.config.get('api_url', 'http://localhost:8000/frame/ocr')
         self.accessibility_mode = self.config.get('accessibility_mode', False) # default off
+        self.api_url = self.config.get('api_url', DEFAULT_API_URL)
+
         # Timer for updating slider
         self.timer = QTimer(self)
         self.timer.setInterval(100)
@@ -130,11 +134,11 @@ class VideoPlayer(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # Main layout
+        ########### Main layout ###########
         layout = QVBoxLayout()
         central_widget.setLayout(layout)
 
-        # Recent items dropdown
+        # Recent videos played, dropdown
         recent_layout = QHBoxLayout()
         recent_layout.addWidget(QLabel("Recent:"))
         self.recent_combo = QComboBox()
@@ -223,7 +227,7 @@ class VideoPlayer(QMainWindow):
         skip_forward_long_btn.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         time_control_layout.addWidget(skip_forward_long_btn)
 
-        # skipping to chosen timestamp
+        # skipping to chosen timestamp  -- Konrad.
         enter_minutes = QLineEdit()
         enter_minutes.setPlaceholderText("Minutes")
         enter_seconds = QLineEdit()
@@ -268,7 +272,7 @@ class VideoPlayer(QMainWindow):
 
         playback_layout.addStretch()
         
-        # Volume control
+        # Volume control -- Minh
         playback_layout.addWidget(QLabel("Volume:"))
         self.volume_slider = QSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)  # VLC volume range = 0–100
@@ -305,6 +309,8 @@ class VideoPlayer(QMainWindow):
         self.setup_shortcuts()
 
         # Set tab order for better keyboard navigation
+        ## NOTE:  should we remove some of these?
+        ##  This is just a backup for keyboard shortcuts.
         self.setTabOrder(self.recent_combo, settings_btn)
         self.setTabOrder(settings_btn, open_btn)
         self.setTabOrder(open_btn, self.url_entry)
@@ -323,29 +329,42 @@ class VideoPlayer(QMainWindow):
         self.setTabOrder(stop_btn, self.speed_combo)
         self.setTabOrder(self.speed_combo, capture_btn)
 
+#####  SHORTCUTS ######
+
     def setup_shortcuts(self):
-        """Setup keyboard shortcuts"""
-        # Playback controls
-        QShortcut(QKeySequence(Qt.Key.Key_Space), self, self.toggle_play_pause)
+        """Setup keyboard shortcuts. Both media keys, and standard keys.  """
+        ### myk: space for play/pause conflicted with "tab to button and space to press"
+        # QShortcut(QKeySequence(Qt.Key.Key_Space), self, self.toggle_play_pause)
+
+        # Playback controls - use media keys instead of Space
+        QShortcut(QKeySequence(Qt.Key.Key_MediaPlay), self, self.play)
+        QShortcut(QKeySequence(Qt.Key.Key_MediaPause), self, self.pause)
+        QShortcut(QKeySequence(Qt.Key.Key_MediaTogglePlayPause), self, self.toggle_play_pause)
         QShortcut(QKeySequence("K"), self, self.toggle_play_pause)  # YouTube style
         QShortcut(QKeySequence("S"), self, self.stop)
+        QShortcut(QKeySequence("P"), self, self.toggle_play_pause)
+        QShortcut(QKeySequence(Qt.Key.Key_MediaStop), self, self.stop)
 
-        # Seeking
+        # Seeking - add media keys
         QShortcut(QKeySequence(Qt.Key.Key_Left), self, lambda: self.skip(-self.skip_short))
         QShortcut(QKeySequence(Qt.Key.Key_Right), self, lambda: self.skip(self.skip_short))
+        QShortcut(QKeySequence(Qt.Key.Key_MediaPrevious), self, lambda: self.skip(-self.skip_long))
+        QShortcut(QKeySequence(Qt.Key.Key_MediaNext), self, lambda: self.skip(self.skip_long))
         QShortcut(QKeySequence("J"), self, lambda: self.skip(-self.skip_long))  # YouTube style
         QShortcut(QKeySequence("L"), self, lambda: self.skip(self.skip_long))  # YouTube style
 
-        # Speed controls
+        # Speed controls  < , >
         QShortcut(QKeySequence("Shift+,"), self, self.decrease_speed)  # Slower
         QShortcut(QKeySequence("Shift+."), self, self.increase_speed)  # Faster
 
-        # Frame capture
+        # Frame capture - C
         QShortcut(QKeySequence("C"), self, self.capture_frame)
 
-        # File operations
+        # File operations  - windows/linux style ^O
         QShortcut(QKeySequence("Ctrl+O"), self, self.open_file)
         QShortcut(QKeySequence("Ctrl+,"), self, self.open_settings)  # Standard settings shortcut
+
+    ####
 
     def toggle_play_pause(self):
         """Toggle between play and pause"""
@@ -409,7 +428,7 @@ class VideoPlayer(QMainWindow):
             
 
     def decrease_speed(self):
-        """Decrease playback speed"""
+        """Decrease playback speed, using pre-defined list of speeds"""
         current_index = self.speed_combo.currentIndex()
         if current_index > 0:
             self.speed_combo.setCurrentIndex(current_index - 1)
@@ -421,11 +440,11 @@ class VideoPlayer(QMainWindow):
             self.speed_combo.setCurrentIndex(current_index + 1)
             
     def change_volume(self, value):
-        """Change VLC player volume"""
+        """Change VLC player volume. """
         try:
             self.player.audio_set_volume(int(value))
         except Exception as e:
-            print(f"Error setting volume: {e}")
+            print(f"Error setting volume: {e}")     # for debug
 
     def get_config_path(self):
         """Get platform-appropriate config file path"""
@@ -480,6 +499,8 @@ class VideoPlayer(QMainWindow):
     def on_recent_selected(self, text):
         """Handle selection from recent items dropdown"""
         if text and text != "-- Select recent file or URL --":
+            # Display the selection in the URL field
+            self.url_entry.setText(text)
             self.load_media(text)
 
     def open_settings(self):
@@ -687,8 +708,11 @@ class VideoPlayer(QMainWindow):
         """Stop the video"""
         self.player.stop()
 
+    ###############################
     def capture_frame(self):
-        """Capture current frame as image and send to OCR"""
+        """Capture current frame as image and send to OCR
+        As we are using
+        """
         if self.player.is_playing() or self.player.get_state() == vlc.State.Paused:
             # Pause if playing
             was_playing = self.player.is_playing()
