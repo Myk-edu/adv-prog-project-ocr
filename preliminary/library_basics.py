@@ -16,11 +16,15 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image
+import os
 import pytesseract 
 
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 # bad cert-iv
 
+pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_PATH", "tesseract")
+# please review Readme.md file to set TESSERACT_PATH environment variable if needed
+# everysteps should be in Readme.md 
 from io import BytesIO
 
 # from https://pypi.org/project/pytesseract/
